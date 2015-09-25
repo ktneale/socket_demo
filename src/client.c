@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-#include <arpa/inet.h> 
+#include <arpa/inet.h>
 #include <poll.h>
 #include <fcntl.h>
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     int len, port;
     struct sockaddr_in address;
     int result = 0;
-    char ch;
+    char ch ='x';
     port = atoi(argv[1]);
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -28,44 +28,47 @@ int main(int argc, char *argv[])
     address.sin_port = htons(port);
     len = sizeof(address);
 
-    
+
     int flags = 0;
 
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
-     
 
-    if (connect(sockfd, (struct sockaddr *)&address, len) == -1) {
-            perror("oops: client failed to connect");
-            //return 1;
-        }
+
+    if (connect(sockfd, (struct sockaddr *) &address, len) == -1) {
+        perror("oops: client failed to connect");
+        //return 1;
+    }
 
     fds[0].fd = sockfd;
     fds[0].events = POLLIN;
     fds[0].revents = 0;
 
-    while(1)
-    {
-        printf("Enter Character To Send The Server OR Q/q To End The  Connection:");
+    char buff[255] = { '\0' };
+
+    while (1) {
+#if 0
+        printf
+            ("Enter Character To Send The Server OR Q/q To End The  Connection:");
         fflush(stdin);
         scanf("%c", &ch);
 
-        if (ch == 'Q' || ch == 'q'){
+        if (ch == 'Q' || ch == 'q') {
             printf("Connection Closed");
             break;
         }
-
+#endif
         write(sockfd, &ch, 1);
-        
-        poll(fds,1,10);
+        sleep(2);
+        //poll(fds,1,10);
 
-        if(fds[0].revents & POLLIN)
-        {
-       
-            result = read(sockfd, &ch, 1);
-        }
+        //if(fds[0].revents & POLLIN)
+        //{
 
-        printf("Incremented character from server = %c\n", ch);
-        printf("Incremented character from server = %d\n", ch);
+        result = read(sockfd, buff, 255);
+        //}
+        printf("Message from server = %s\n", buff);
+        //printf("Incremented character from server = %c\n", ch);
+        //printf("Incremented character from server = %d\n", ch);
     }
 
     close(sockfd);
